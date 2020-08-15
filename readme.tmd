@@ -1,0 +1,76 @@
+1.Node.js 是一个异步的世界，官方 API 支持的都是 callback 形式的异步编程模型，这会带来许多问题，
+  例如:1、callback 嵌套问题 2、异步函数中可能同步调用 callback 返回 数据，带来不一致性。为了解决以上问题 Koa 出现了
+  koa最大的特点就是可以避免异步嵌套
+2.项目初始化 npm init
+3.安装 cnpm install koa --save
+4.执行顺序讲解：
+  app.use(async (ctx, next) => {
+    console.log(1)
+    await next()
+    console.log(5)
+  });
+
+  app.use(async (ctx, next) => {
+    console.log(2)
+    await next()
+    console.log(4)
+  });
+
+  app.use(async ctx => {
+    console.log(3)
+  });
+
+执行:app.use(async (ctx, next) => {
+      console.log(1)
+      await next()
+      console.log(5)
+    });
+    ===>
+    app.use(async (ctx, next) => {
+      console.log(1)
+      await async (ctx, next) => {
+        console.log(2)
+        await next()
+        console.log(4)
+      }
+      console.log(5)
+    });
+    ===>
+    app.use(async (ctx, next) => {
+      console.log(1)
+      console.log(2)
+      await next()
+      console.log(4)
+      console.log(5)
+    });
+    ===>
+    app.use(async (ctx, next) => {
+      console.log(1)
+      console.log(2)
+      await async ctx => {
+        console.log(3)
+      }
+      console.log(4)
+      console.log(5)
+    });
+    ==>
+    app.use(async (ctx, next) => {
+      console.log(1)
+      console.log(2)
+      console.log(3)
+      console.log(4)
+      console.log(5)
+    });
+    ===> 1 2 3 4 5
+
+    洋葱模型：
+
+5.koa模块介绍
+  application: 主入口,所有的应用都挂在主入口上，主入口不直接引入以下三个模块，而只因入了ctx
+  context:通过代理将request和response挂载到自身上面
+  request
+  response
+
+
+
+
